@@ -1,0 +1,21 @@
+[package]
+name = "quiz-app"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "quiz_app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rand = "0.8"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[profile.release]
+opt-level = "s"
+

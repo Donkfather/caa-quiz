@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Fundal gradient ocean -->
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#0a3d6b"/>
+      <stop offset="100%" stop-color="#020f1f"/>
+    </radialGradient>
+
+    <!-- Gradient ancora -->
+    <linearGradient id="anchorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0c040"/>
+      <stop offset="50%" stop-color="#e8a800"/>
+      <stop offset="100%" stop-color="#b87800"/>
+    </linearGradient>
+
+    <!-- Gradient inel exterior -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e6fa8"/>
+      <stop offset="100%" stop-color="#0d4070"/>
+    </linearGradient>
+
+    <!-- Stralucire ancora -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Umbra subtila -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+
+    <!-- Clip rotund -->
+    <clipPath id="roundClip">
+      <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230"/>
+    </clipPath>
+  </defs>
+
+  <!-- Fundal rotunjit -->
+  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230" fill="url(#bgGrad)"/>
+
+  <!-- Val ocean 1 -->
+  <path d="M0 680 Q120 640 240 670 Q360 700 480 660 Q600 620 720 655 Q840 690 1024 650 L1024 1024 L0 1024 Z"
+        fill="#0d2d4a" opacity="0.7" clip-path="url(#roundClip)"/>
+
+  <!-- Val ocean 2 -->
+  <path d="M0 740 Q150 700 300 730 Q450 760 600 720 Q750 680 900 715 Q960 730 1024 710 L1024 1024 L0 1024 Z"
+        fill="#081c30" opacity="0.9" clip-path="url(#roundClip)"/>
+
+  <!-- Stele decorative mici -->
+  <circle cx="100" cy="120" r="3" fill="white" opacity="0.6"/>
+  <circle cx="200" cy="80" r="2" fill="white" opacity="0.4"/>
+  <circle cx="350" cy="100" r="2.5" fill="white" opacity="0.5"/>
+  <circle cx="600" cy="70" r="3" fill="white" opacity="0.6"/>
+  <circle cx="750" cy="110" r="2" fill="white" opacity="0.4"/>
+  <circle cx="900" cy="90" r="2.5" fill="white" opacity="0.5"/>
+  <circle cx="940" cy="160" r="2" fill="white" opacity="0.3"/>
+  <circle cx="130" cy="200" r="1.5" fill="white" opacity="0.4"/>
+  <circle cx="820" cy="180" r="1.5" fill="white" opacity="0.35"/>
+
+  <!-- Inel exterior decorativ -->
+  <circle cx="512" cy="440" r="300" fill="none" stroke="url(#ringGrad)" stroke-width="6" opacity="0.5"/>
+  <circle cx="512" cy="440" r="290" fill="none" stroke="#1e6fa8" stroke-width="1" opacity="0.3"/>
+
+  <!-- Semne cardinale pe inel (N, S, E, V) -->
+  <!-- Nord -->
+  <polygon points="512,125 523,155 501,155" fill="#f0c040" opacity="0.9"/>
+  <!-- Sud -->
+  <polygon points="512,755 501,725 523,725" fill="#f0c040" opacity="0.9"/>
+  <!-- Est -->
+  <polygon points="827,440 797,429 797,451" fill="#f0c040" opacity="0.9"/>
+  <!-- Vest -->
+  <polygon points="197,440 227,451 227,429" fill="#f0c040" opacity="0.9"/>
+
+  <!-- Ancora principala -->
+  <g filter="url(#glow)" transform="translate(512, 420)">
+
+    <!-- Inelul ancorei sus -->
+    <circle cx="0" cy="-170" r="38" fill="none" stroke="url(#anchorGrad)" stroke-width="22"/>
+
+    <!-- Tija verticala -->
+    <rect x="-11" y="-152" width="22" height="310" rx="11" fill="url(#anchorGrad)"/>
+
+    <!-- Traversa orizontala -->
+    <rect x="-110" y="-135" width="220" height="22" rx="11" fill="url(#anchorGrad)"/>
+    <!-- Capete traversa -->
+    <circle cx="-110" cy="-124" r="16" fill="url(#anchorGrad)"/>
+    <circle cx="110" cy="-124" r="16" fill="url(#anchorGrad)"/>
+
+    <!-- Arc inferior stanga -->
+    <path d="M -11 145 Q -90 150 -110 100 Q -130 50 -95 20"
+          fill="none" stroke="url(#anchorGrad)" stroke-width="22" stroke-linecap="round"/>
+    <!-- Arc inferior dreapta -->
+    <path d="M 11 145 Q 90 150 110 100 Q 130 50 95 20"
+          fill="none" stroke="url(#anchorGrad)" stroke-width="22" stroke-linecap="round"/>
+
+    <!-- Gheare stanga -->
+    <path d="M -95 20 Q -140 -10 -135 -45 Q -130 -65 -108 -60"
+          fill="none" stroke="url(#anchorGrad)" stroke-width="22" stroke-linecap="round"/>
+    <!-- Gheare dreapta -->
+    <path d="M 95 20 Q 140 -10 135 -45 Q 130 -65 108 -60"
+          fill="none" stroke="url(#anchorGrad)" stroke-width="22" stroke-linecap="round"/>
+
+  </g>
+
+  <!-- Badge quiz - cerc mic cu semn intrebare -->
+  <circle cx="700" cy="250" r="72" fill="#e8a800" filter="url(#shadow)"/>
+  <circle cx="700" cy="250" r="62" fill="#f0c040"/>
+  <text x="700" y="278" font-family="Georgia, serif" font-size="80" font-weight="bold"
+        text-anchor="middle" fill="#0a3d6b">?</text>
+
+  <!-- Text QUIZ jos -->
+  <text x="512" y="855" font-family="Georgia, 'Times New Roman', serif"
+        font-size="88" font-weight="bold" letter-spacing="18"
+        text-anchor="middle" fill="#f0c040" filter="url(#glow)">QUIZ</text>
+
+  <!-- Linie decorativa sub text -->
+  <line x1="250" y1="880" x2="774" y2="880" stroke="#f0c040" stroke-width="3" opacity="0.5"/>
+
+  <!-- Text NAVAL mic -->
+  <text x="512" y="930" font-family="Georgia, 'Times New Roman', serif"
+        font-size="46" letter-spacing="22"
+        text-anchor="middle" fill="#7ab8e0" opacity="0.85">NAVAL</text>
+
+  <!-- Bordura exterioara subtila -->
+  <rect x="0" y="0" width="1024" height="1024" rx="230" ry="230"
+        fill="none" stroke="#1e6fa8" stroke-width="8" opacity="0.4"/>
+</svg>

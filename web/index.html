@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>Quiz Clasa C – Web</title>
+    <link rel="stylesheet" href="../src/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- Start screen -->
+      <div id="screen-start" class="screen active">
+        <div class="card">
+          <h1 class="title">Test de teorie – Clasa C (Web)</h1>
+          <p class="subtitle">
+            Alege modul de testare și parcurge întrebările în ordine aleatoare.
+          </p>
+          <div class="mode-selector">
+            <label class="mode-option">
+              <input
+                type="radio"
+                name="quiz-mode"
+                value="test_26"
+                checked
+              />
+              <span>Test rapid (26 întrebări)</span>
+            </label>
+            <label class="mode-option">
+              <input type="radio" name="quiz-mode" value="all" />
+              <span>Toate întrebările</span>
+            </label>
+          </div>
+          <button id="start-btn" class="btn btn-primary">Începe testul</button>
+        </div>
+      </div>
+
+      <!-- Quiz screen -->
+      <div id="screen-quiz" class="screen">
+        <div class="card quiz-card">
+          <div class="score-summary">
+            <span class="score-pill score-correct">
+              Corecte: <strong id="summary-correct">0</strong>
+            </span>
+            <span class="score-pill score-wrong">
+              Greșite: <strong id="summary-wrong">0</strong>
+            </span>
+            <span class="score-pill score-remaining">
+              Rămase: <strong id="summary-remaining">0</strong>
+            </span>
+          </div>
+          <div class="progress">
+            <div id="progress-bar">
+              <div id="progress-fill"></div>
+            </div>
+            <span id="progress-text" class="progress-text"></span>
+          </div>
+
+          <div class="question-wrapper">
+            <p id="question-text" class="question-text"></p>
+          </div>
+
+          <div id="options-container" class="options-container"></div>
+
+          <button
+            id="next-btn"
+            class="btn btn-primary btn-next"
+            disabled
+          >
+            Următoarea
+          </button>
+        </div>
+      </div>
+
+      <!-- Result screen -->
+      <div id="screen-result" class="screen">
+        <div class="card result-card">
+          <div id="result-emoji" class="result-emoji">✅</div>
+          <h2 id="result-score" class="result-score">0/26</h2>
+          <p id="result-message" class="result-message">
+            Vei vedea aici mesajul de promovat/nepromovat.
+          </p>
+          <button id="restart-btn" class="btn btn-secondary">
+            Încearcă din nou
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
+

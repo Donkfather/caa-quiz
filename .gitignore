@@ -1,0 +1,40 @@
+# Rust / Cargo
+/target/
+/src-tauri/target/
+/src-tauri/gen/android/.gradle/
+/src-tauri/gen/android/.idea/
+/src-tauri/gen/android/local.properties
+
+# Tauri build artifacts
+/dist/
+/src-tauri/gen/
+/src-tauri/bundle/
+/src-tauri/tauri.conf.json.bak
+
+# Node / frontend (dacă adaugi toolchain JS)
+node_modules/
+/pnpm-lock.yaml
+npm-debug.log*
+yarn.lock
+.yarn/*
+.vite/
+*.log
+
+# IDE / Editor
+/.vscode/
+/.idea/
+/*.code-workspace
+.DS_Store
+
+# System / OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python helpers (dacă ai scripturi de extracție)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv/
