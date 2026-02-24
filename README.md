@@ -1,3 +1,5 @@
+[![Deploy Web to GitHub Pages](https://github.com/Donkfather/caa-quiz/actions/workflows/pages.yml/badge.svg)](https://github.com/Donkfather/caa-quiz/actions/workflows/pages.yml) [![Release builds](https://github.com/Donkfather/caa-quiz/actions/workflows/release.yml/badge.svg)](https://github.com/Donkfather/caa-quiz/actions/workflows/release.yml)
+
 ## Quiz Clasa C – Tauri 2 (Android, iOS, Desktop, Web)
 
 Aplicatie de quiz pentru întrebările de teorie „Clasa C”, construită cu:
@@ -37,7 +39,7 @@ Interfața și logica de quiz sunt partajate între aplicația Tauri și versiun
 Prerechizite: Rust stable, `tauri-cli`, Node (opțional, pentru tooling suplimentar).
 
 ```bash
-cd /Users/donkfather/projects/caa
+cd caa
 cargo tauri dev
 ```
 
@@ -48,7 +50,7 @@ Se va deschide fereastra desktop (macOS) cu aceleași ecrane ca pe mobil.
 Prerechizite: Android SDK + NDK, Java 17+ configurat (`JAVA_HOME`), dispozitiv sau emulator conectat.
 
 ```bash
-cd /Users/donkfather/projects/caa
+cd caa
 cargo tauri android dev
 ```
 
@@ -59,7 +61,7 @@ Tauri va construi APK‑ul de debug și îl va instala pe dispozitivul detectat.
 Poți rula varianta web direct din browser folosind un server static simplu:
 
 ```bash
-cd /Users/donkfather/projects/caa
+cd caa
 python3 -m http.server 8000
 ```
 
@@ -74,7 +76,7 @@ Apoi deschide:
 ### Desktop (macOS)
 
 ```bash
-cd /Users/donkfather/projects/caa
+cd caa
 cargo tauri build
 ```
 
@@ -86,7 +88,7 @@ Artefacte:
 ### Android (APK/AAB)
 
 ```bash
-cd /Users/donkfather/projects/caa
+cd caa
 cargo tauri android build
 ```
 
@@ -100,7 +102,7 @@ Artefacte principale:
 Dacă ai configurat iOS (Xcode + device/simulator):
 
 ```bash
-cd /Users/donkfather/projects/caa
+cd caa
 cargo tauri ios build
 ```
 
@@ -119,8 +121,9 @@ Varianta web nu necesită build suplimentar – fișierele sunt servite direct d
 Pentru un pachet simplu:
 
 ```bash
-cd /Users/donkfather/projects/caa
-tar -czf web-dist.tar.gz web questions.json src/quiz-core.js src/style.css
+cd caa
+./web-build.sh
+tar -czf web-dist.tar.gz -C public .
 ```
 
 ---

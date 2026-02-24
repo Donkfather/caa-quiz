@@ -1,14 +1,14 @@
 {
-  "productName": "quiz-app",
+  "productName": "CAA Quiz",
   "version": "0.1.0",
-  "identifier": "ro.quiz.app",
+  "identifier": "ro.caa.quiz",
   "build": {
     "frontendDist": "../src"
   },
   "app": {
     "windows": [
       {
-        "title": "Quiz",
+        "title": "CAA Quiz",
         "width": 480,
         "height": 850
       }
@@ -21,7 +21,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": []
+    "icon": ["icons/icon.png"]
   }
 }
 

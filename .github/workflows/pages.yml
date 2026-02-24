@@ -23,17 +23,8 @@ jobs:
 
       - name: Prepare web assets
         run: |
-          mkdir -p public/web
-          mkdir -p public/src
-
-          # Copiem doar ce este necesar pentru versiunea web:
-          # - HTML + JS din /web
-          # - întrebările din /questions.json
-          # - logica comună și stilurile din /src
-          cp -R web/* public/web/
-          cp questions.json public/
-          cp src/quiz-core.js public/src/
-          cp src/style.css public/src/
+          chmod +x ./web-build.sh
+          ./web-build.sh
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

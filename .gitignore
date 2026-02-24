@@ -11,6 +11,9 @@
 /src-tauri/bundle/
 /src-tauri/tauri.conf.json.bak
 
+# Web build output
+/public/
+
 # Node / frontend (dacă adaugi toolchain JS)
 node_modules/
 /pnpm-lock.yaml
