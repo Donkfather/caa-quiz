@@ -16,7 +16,7 @@ echo "Copying web assets..."
 cp -R web/* public/web/
 cp src-tauri/icons/icon.ico public/web/favicon.ico
 cp questions.json public/
-cp -r src/ public/src/
+cp -R src/* public/src/
 cat > public/CNAME <<'EOF'
 caa-quiz.bhdit.com
 EOF
