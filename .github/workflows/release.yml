@@ -2,57 +2,15 @@ name: Release builds
 
 on:
   push:
-    branches:
-      - "release/*"
+    tags:
+      - "v*"
 
 permissions:
   contents: write
 
 jobs:
-  tag:
-    name: Create tag from release branch
-    runs-on: ubuntu-latest
-    outputs:
-      tag_name: ${{ steps.set-tag.outputs.tag_name }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Derive tag name from branch
-        id: set-tag
-        run: |
-          ref="${GITHUB_REF_NAME}" # e.g. release/1.0.0
-          version="${ref#release/}"
-          tag="v${version}"
-          echo "Using tag: $tag"
-          echo "tag_name=$tag" >> "$GITHUB_OUTPUT"
-
-      - name: Create lightweight Git tag
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const tag = '${{ steps.set-tag.outputs.tag_name }}';
-            core.info(`Creating tag ${tag} at ${context.sha}`);
-            try {
-              await github.rest.git.createRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: `refs/tags/${tag}`,
-                sha: context.sha,
-              });
-            } catch (error) {
-              if (error.status === 422) {
-                core.warning(`Tag ${tag} already exists, skipping creation.`);
-              } else {
-                throw error;
-              }
-            }
-
   build:
     name: Build Android, macOS, iOS and Web
-    needs: tag
     runs-on: macos-latest
 
     steps:
@@ -85,10 +43,7 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           accept-android-sdk-licenses: true
-          packages: |
-            platform-tools
-            platforms;android-34
-            build-tools;34.0.0
+          packages: "platform-tools platforms;android-34 build-tools;34.0.0"
 
       - name: Set up Android NDK
         uses: nttld/setup-ndk@v1
@@ -118,7 +73,7 @@ jobs:
       - name: Upload desktop bundle artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-bundles-${{ needs.tag.outputs.tag_name }}
+          name: desktop-bundles-${{ github.ref_name }}
           path: |
             src-tauri/target/release/bundle/**
           if-no-files-found: ignore
@@ -126,7 +81,7 @@ jobs:
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-${{ needs.tag.outputs.tag_name }}
+          name: android-build-${{ github.ref_name }}
           path: |
             src-tauri/gen/android/app/build/outputs/**
           if-no-files-found: ignore
@@ -134,7 +89,7 @@ jobs:
       - name: Upload iOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build-${{ needs.tag.outputs.tag_name }}
+          name: ios-build-${{ github.ref_name }}
           path: |
             src-tauri/gen/ios/**
           if-no-files-found: ignore
@@ -142,7 +97,7 @@ jobs:
       - name: Upload web bundle
         uses: actions/upload-artifact@v4
         with:
-          name: web-dist-${{ needs.tag.outputs.tag_name }}
+          name: web-dist-${{ github.ref_name }}
           path: web-dist.tar.gz
           if-no-files-found: error
 
