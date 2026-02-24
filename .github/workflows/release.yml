@@ -9,9 +9,45 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build Android, macOS, iOS and Web
+  desktop:
+    name: Build desktop (macOS)
     runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" || true
+
+      - name: Build desktop (macOS)
+        run: |
+          cargo tauri build
+
+      - name: Upload desktop bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-bundles-${{ github.ref_name }}
+          path: |
+            src-tauri/target/release/bundle/**
+          if-no-files-found: ignore
+
+  android:
+    name: Build Android
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -50,10 +86,6 @@ jobs:
         with:
           ndk-version: r26d
 
-      - name: Build desktop (macOS) + embedded web
-        run: |
-          cargo tauri build
-
       - name: Init Android project (CI)
         run: |
           cargo tauri android init --ci
@@ -61,22 +93,6 @@ jobs:
       - name: Build Android
         run: |
           cargo tauri android build
-
-      - name: Build iOS
-        run: |
-          cargo tauri ios build
-
-      - name: Package web static files
-        run: |
-          tar -czf web-dist.tar.gz web
-
-      - name: Upload desktop bundle artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: desktop-bundles-${{ github.ref_name }}
-          path: |
-            src-tauri/target/release/bundle/**
-          if-no-files-found: ignore
 
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
@@ -86,6 +102,34 @@ jobs:
             src-tauri/gen/android/app/build/outputs/**
           if-no-files-found: ignore
 
+  ios:
+    name: Build iOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" || true
+
+      - name: Build iOS
+        run: |
+          cargo tauri ios build
+
       - name: Upload iOS artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -93,6 +137,20 @@ jobs:
           path: |
             src-tauri/gen/ios/**
           if-no-files-found: ignore
+
+  web:
+    name: Package web static files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare web assets
+        run: |
+          chmod +x ./web-build.sh
+          ./web-build.sh
+          tar -czf web-dist.tar.gz public
 
       - name: Upload web bundle
         uses: actions/upload-artifact@v4
