@@ -19,5 +19,25 @@ cp questions.json public/
 cp src/quiz-core.js public/src/
 cp src/style.css public/src/
 
+cat > public/index.html <<'EOF'
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="refresh"
+      content="0; url=web/"
+    />
+    <title>CAA Quiz – redirecționare</title>
+  </head>
+  <body>
+    <p>
+      Dacă nu ești redirecționat automat, mergi la
+      <a href="web/">CAA Quiz</a>.
+    </p>
+  </body>
+</html>
+EOF
+
 echo "Web build completed in ./public"
 

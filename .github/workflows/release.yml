@@ -59,6 +59,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -75,9 +81,27 @@ jobs:
       - name: Install Tauri CLI
         run: cargo install tauri-cli --version "^2.0" || true
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+          packages: |
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
+
+      - name: Set up Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+
       - name: Build desktop (macOS) + embedded web
         run: |
           cargo tauri build
+
+      - name: Init Android project (CI)
+        run: |
+          cargo tauri android init --ci
 
       - name: Build Android
         run: |
