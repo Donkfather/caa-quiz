@@ -16,7 +16,7 @@
         <div class="card">
           <h1 class="title">Test de teorie – Clasa C</h1>
           <p class="subtitle">
-            Alege modul de testare și parcurge întrebările în ordine aleatoare.
+            Selectează o variantă pentru a începe testul.
           </p>
           <div class="mode-selector">
             <label class="mode-option">
@@ -33,13 +33,25 @@
               <span>Toate întrebările</span>
             </label>
           </div>
-          <button id="start-btn" class="btn btn-primary">Începe testul</button>
+          <div id="session-section" class="session-section">
+            <h2 class="session-section-title">Sesiuni în curs</h2>
+            <div id="session-list" class="session-list"></div>
+          </div>
         </div>
       </div>
 
       <!-- Quiz screen -->
       <div id="screen-quiz" class="screen">
         <div class="card quiz-card">
+          <div class="quiz-header">
+            <button id="home-btn" class="header-btn header-btn-left">
+              Acasă
+            </button>
+            <div class="header-title">CAA Quiz</div>
+            <button id="save-exit-btn" class="header-btn header-btn-right">
+              Salvează
+            </button>
+          </div>
           <div class="score-summary">
             <span class="score-pill score-correct">
               Corecte: <strong id="summary-correct">0</strong>

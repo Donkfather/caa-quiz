@@ -10,11 +10,17 @@ import {
   getStats,
   getCurrentIndex,
   getTotalQuestions,
+  getSerializableState,
+  restoreFromState,
 } from "./quiz-core.js";
+
+import * as sessionStore from "./session-store.js";
 
 const { invoke } = window.__TAURI__.core;
 
 let answeredCurrent = false;
+let currentSessionMeta = null;
+let isStartingQuiz = false;
 
 let screenStart;
 let screenQuiz;
@@ -33,6 +39,11 @@ let summaryCorrectEl;
 let summaryWrongEl;
 let summaryRemainingEl;
 let modeInputs;
+let sessionSectionEl;
+let sessionListEl;
+let homeBtn;
+let saveExitBtn;
+let modeOptionEls;
 
 function showScreen(screenId) {
   const screens = [screenStart, screenQuiz, screenResult];
@@ -85,23 +96,43 @@ async function loadQuestionsFromTauri() {
 }
 
 async function startQuiz() {
+  if (isStartingQuiz) return;
+  isStartingQuiz = true;
   answeredCurrent = false;
   nextBtn.disabled = true;
 
-  const allQuestions = await loadQuestionsFromTauri();
-  initQuestions(allQuestions);
+  try {
+    const allQuestions = await loadQuestionsFromTauri();
+    initQuestions(allQuestions);
 
-  const mode = getSelectedMode();
-  const firstQuestion = startSession(mode);
+    const mode = getSelectedMode();
+    const firstQuestion = startSession(mode);
 
-  if (!firstQuestion) {
-    questionTextEl.textContent =
-      "Nu s-au putut inițializa întrebările. Încearcă din nou.";
-    return;
+    if (!firstQuestion) {
+      questionTextEl.textContent =
+        "Nu s-au putut inițializa întrebările. Încearcă din nou.";
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    const id =
+      (typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `sess_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    currentSessionMeta = {
+      id,
+      mode,
+      createdAt: nowIso,
+    };
+
+    saveCurrentSession("in_progress");
+    refreshSessionList();
+
+    showScreen("quiz");
+    renderQuestion();
+  } finally {
+    isStartingQuiz = false;
   }
-
-  showScreen("quiz");
-  renderQuestion();
 }
 
 function renderQuestion() {
@@ -173,6 +204,7 @@ function handleSelectAnswer(selectedIndex) {
   }
 
   updateStats();
+  saveCurrentSession("in_progress");
   nextBtn.disabled = false;
 }
 
@@ -213,17 +245,176 @@ function showResult() {
   resultScoreEl.textContent = `${score}/${total || 0}`;
   resultMessageEl.textContent = message;
 
+  // sesiunea curentă nu mai este "în curs" - o ștergem din listă
+  if (currentSessionMeta && currentSessionMeta.id) {
+    sessionStore.deleteSession(currentSessionMeta.id);
+    refreshSessionList();
+    currentSessionMeta = null;
+  }
+
   showScreen("result");
 }
 
-function setupEventListeners() {
-  startBtn.addEventListener("click", () => {
-    startQuiz().catch((err) => {
-      console.error("Eroare la pornirea quizului:", err);
-      questionTextEl.textContent =
-        "A apărut o eroare la pornirea testului. Verifică consola.";
+function saveCurrentSession(status = "in_progress") {
+  if (!currentSessionMeta || !currentSessionMeta.id) return;
+
+  const serial = getSerializableState();
+  const stats = getStats();
+  const nowIso = new Date().toISOString();
+
+  const session = {
+    id: currentSessionMeta.id,
+    mode: currentSessionMeta.mode,
+    createdAt: currentSessionMeta.createdAt,
+    updatedAt: nowIso,
+    status,
+    correct: stats.correct,
+    wrong: stats.wrong,
+    total: stats.total,
+    currentIndex:
+      typeof serial.currentIndex === "number"
+        ? serial.currentIndex
+        : getCurrentIndex(),
+    order: serial.order,
+    answers: serial.answers,
+  };
+
+  sessionStore.saveSession(session);
+}
+
+async function continueSession(session) {
+  try {
+    const allQuestions = await loadQuestionsFromTauri();
+    initQuestions(allQuestions);
+
+    const ok = restoreFromState({
+      mode: session.mode,
+      order: session.order || [],
+      currentIndex:
+        typeof session.currentIndex === "number" ? session.currentIndex : 0,
+      answers: session.answers || [],
     });
+
+    if (!ok) {
+      // sesiune coruptă, o ștergem
+      sessionStore.deleteSession(session.id);
+      refreshSessionList();
+      return;
+    }
+
+    currentSessionMeta = {
+      id: session.id,
+      mode: session.mode,
+      createdAt: session.createdAt || new Date().toISOString(),
+    };
+
+    showScreen("quiz");
+    renderQuestion();
+  } catch (err) {
+    console.error("Eroare la continuarea sesiunii:", err);
+  }
+}
+
+function refreshSessionList() {
+  if (!sessionSectionEl || !sessionListEl) return;
+
+  const sessions = sessionStore.loadSessions().filter(
+    (s) => s && s.status !== "completed"
+  );
+
+  sessionListEl.innerHTML = "";
+
+  if (!sessions.length) {
+    sessionSectionEl.style.display = "none";
+    return;
+  }
+
+  sessionSectionEl.style.display = "block";
+
+  sessions.forEach((s) => {
+    const item = document.createElement("div");
+    item.className = "session-item";
+
+    item.addEventListener("click", () => {
+      continueSession(s);
+    });
+
+    const main = document.createElement("div");
+    main.className = "session-main";
+
+    const titleRow = document.createElement("div");
+    titleRow.className = "session-title-row";
+
+    const title = document.createElement("span");
+    title.className = "session-title";
+    title.textContent =
+      s.mode === MODE_ALL ? "Toate întrebările" : "Test rapid (26 întrebări)";
+
+    const status = document.createElement("span");
+    status.className = "session-status";
+    status.textContent = "În curs";
+
+    titleRow.appendChild(title);
+    titleRow.appendChild(status);
+
+    const meta = document.createElement("div");
+    meta.className = "session-meta";
+
+    const correct = Number(s.correct || 0);
+    const wrong = Number(s.wrong || 0);
+    const total = Number(s.total || 0);
+    const remaining = Math.max(0, total - correct - wrong);
+
+    const updated = s.updatedAt || s.createdAt;
+    const updatedLabel = updated
+      ? new Date(updated).toLocaleString("ro-RO", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "";
+
+    meta.textContent = `${correct} corecte · ${wrong} greșite · ${remaining} rămase${
+      updatedLabel ? " · " + updatedLabel : ""
+    }`;
+
+    main.appendChild(titleRow);
+    main.appendChild(meta);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "session-delete-btn";
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "✕";
+    deleteBtn.setAttribute("aria-label", "Șterge sesiunea");
+    deleteBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      sessionStore.deleteSession(s.id);
+      refreshSessionList();
+    });
+
+    item.appendChild(main);
+    item.appendChild(deleteBtn);
+    sessionListEl.appendChild(item);
   });
+}
+
+function handleSaveAndGoHome() {
+  saveCurrentSession("in_progress");
+  refreshSessionList();
+  showScreen("start");
+}
+
+function setupEventListeners() {
+  if (startBtn) {
+    startBtn.addEventListener("click", () => {
+      startQuiz().catch((err) => {
+        console.error("Eroare la pornirea quizului:", err);
+        questionTextEl.textContent =
+          "A apărut o eroare la pornirea testului. Verifică consola.";
+      });
+    });
+  }
 
   nextBtn.addEventListener("click", () => {
     nextQuestion();
@@ -232,6 +423,32 @@ function setupEventListeners() {
   restartBtn.addEventListener("click", () => {
     showScreen("start");
   });
+
+  if (modeOptionEls && modeOptionEls.length) {
+    modeOptionEls.forEach((opt) => {
+      opt.addEventListener("click", () => {
+        const input = opt.querySelector('input[type="radio"]');
+        if (input) {
+          input.checked = true;
+        }
+        startQuiz().catch((err) => {
+          console.error("Eroare la pornirea quizului:", err);
+        });
+      });
+    });
+  }
+
+  if (homeBtn) {
+    homeBtn.addEventListener("click", () => {
+      handleSaveAndGoHome();
+    });
+  }
+
+  if (saveExitBtn) {
+    saveExitBtn.addEventListener("click", () => {
+      handleSaveAndGoHome();
+    });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -256,8 +473,14 @@ document.addEventListener("DOMContentLoaded", () => {
   summaryWrongEl = document.getElementById("summary-wrong");
   summaryRemainingEl = document.getElementById("summary-remaining");
   modeInputs = document.querySelectorAll('input[name="quiz-mode"]');
+  sessionSectionEl = document.getElementById("session-section");
+  sessionListEl = document.getElementById("session-list");
+  homeBtn = document.getElementById("home-btn");
+  saveExitBtn = document.getElementById("save-exit-btn");
+  modeOptionEls = document.querySelectorAll(".mode-option");
 
   showScreen("start");
   setupEventListeners();
+  refreshSessionList();
 });
 

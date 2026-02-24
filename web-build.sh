@@ -14,7 +14,7 @@ mkdir -p public/src
 
 echo "Copying web assets..."
 cp -R web/* public/web/
-cp src-tauri/icons/icon.png public/web/favicon.png
+cp src-tauri/icons/icon.ico public/web/favicon.ico
 cp questions.json public/
 cp src/quiz-core.js public/src/
 cp src/style.css public/src/

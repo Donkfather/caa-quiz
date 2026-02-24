@@ -10,6 +10,8 @@ let currentIndex = 0;
 let correctCount = 0;
 let wrongCount = 0;
 let hasAnsweredCurrent = false;
+let currentMode = MODE_TEST_26;
+let answers = [];
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -32,6 +34,8 @@ export function startSession(mode = MODE_TEST_26) {
     return null;
   }
 
+  currentMode = mode || MODE_TEST_26;
+
   order = questions.map((_, idx) => idx);
   shuffle(order);
 
@@ -43,6 +47,7 @@ export function startSession(mode = MODE_TEST_26) {
   correctCount = 0;
   wrongCount = 0;
   hasAnsweredCurrent = false;
+  answers = new Array(order.length).fill(null);
 
   return getCurrentQuestion();
 }
@@ -78,6 +83,9 @@ export function answerCurrent(selectedIndex) {
   }
 
   hasAnsweredCurrent = true;
+  if (Array.isArray(answers) && currentIndex >= 0 && currentIndex < answers.length) {
+    answers[currentIndex] = selectedIndex;
+  }
 
   return { isCorrect, question, correctIndex: question.correct };
 }
@@ -111,4 +119,68 @@ export function getCurrentIndex() {
 export function getTotalQuestions() {
   return order.length;
 }
+
+export function getMode() {
+  return currentMode;
+}
+
+export function getSerializableState() {
+  return {
+    mode: currentMode,
+    order: order.slice(),
+    currentIndex,
+    answers: Array.isArray(answers) ? answers.slice() : [],
+  };
+}
+
+export function restoreFromState(state) {
+  if (!state || !Array.isArray(state.order) || !Array.isArray(state.answers)) {
+    return false;
+  }
+
+  order = state.order.slice();
+  answers = state.answers.slice();
+
+  if (!order.length) {
+    currentIndex = 0;
+    correctCount = 0;
+    wrongCount = 0;
+    hasAnsweredCurrent = false;
+    return false;
+  }
+
+  currentMode = state.mode === MODE_ALL ? MODE_ALL : MODE_TEST_26;
+
+  const idx = typeof state.currentIndex === "number" ? state.currentIndex : 0;
+  currentIndex = Math.min(Math.max(idx, 0), order.length - 1);
+
+  // Recalculăm scorul pe baza răspunsurilor și întrebărilor curente.
+  let c = 0;
+  let w = 0;
+
+  for (let i = 0; i < order.length; i += 1) {
+    const ans = answers[i];
+    if (typeof ans !== "number") continue;
+
+    const qIndex = order[i];
+    const q = questions[qIndex];
+    if (!q || typeof q.correct !== "number") continue;
+
+    if (q.correct === ans) {
+      c += 1;
+    } else {
+      w += 1;
+    }
+  }
+
+  correctCount = c;
+  wrongCount = w;
+  hasAnsweredCurrent =
+    currentIndex >= 0 &&
+    currentIndex < answers.length &&
+    typeof answers[currentIndex] === "number";
+
+  return true;
+}
+
 
