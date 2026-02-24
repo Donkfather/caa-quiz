@@ -3,7 +3,6 @@ name: Deploy Web to GitHub Pages
 on:
   push:
     branches:
-      - main
       - "release/*"
 
 permissions:
@@ -22,13 +21,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Artefactul pentru Pages va conține întreg repository-ul.
-      # Interfața web este disponibilă la /web/index.html și folosește
-      # fișierele /questions.json și /src/quiz-core.js din rădăcină.
+      - name: Prepare web assets
+        run: |
+          mkdir -p public/web
+          mkdir -p public/src
+
+          # Copiem doar ce este necesar pentru versiunea web:
+          # - HTML + JS din /web
+          # - întrebările din /questions.json
+          # - logica comună și stilurile din /src
+          cp -R web/* public/web/
+          cp questions.json public/
+          cp src/quiz-core.js public/src/
+          cp src/style.css public/src/
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: public
 
   deploy:
     environment:
