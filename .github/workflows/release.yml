@@ -1,0 +1,124 @@
+name: Release builds
+
+on:
+  push:
+    branches:
+      - "release/*"
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    name: Create tag from release branch
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.set-tag.outputs.tag_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Derive tag name from branch
+        id: set-tag
+        run: |
+          ref="${GITHUB_REF_NAME}" # e.g. release/1.0.0
+          version="${ref#release/}"
+          tag="v${version}"
+          echo "Using tag: $tag"
+          echo "tag_name=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create lightweight Git tag
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = '${{ steps.set-tag.outputs.tag_name }}';
+            core.info(`Creating tag ${tag} at ${context.sha}`);
+            try {
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${tag}`,
+                sha: context.sha,
+              });
+            } catch (error) {
+              if (error.status === 422) {
+                core.warning(`Tag ${tag} already exists, skipping creation.`);
+              } else {
+                throw error;
+              }
+            }
+
+  build:
+    name: Build Android, macOS, iOS and Web
+    needs: tag
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" || true
+
+      - name: Build desktop (macOS) + embedded web
+        run: |
+          cargo tauri build
+
+      - name: Build Android
+        run: |
+          cargo tauri android build
+
+      - name: Build iOS
+        run: |
+          cargo tauri ios build
+
+      - name: Package web static files
+        run: |
+          tar -czf web-dist.tar.gz web
+
+      - name: Upload desktop bundle artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-bundles-${{ needs.tag.outputs.tag_name }}
+          path: |
+            src-tauri/target/release/bundle/**
+          if-no-files-found: ignore
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-${{ needs.tag.outputs.tag_name }}
+          path: |
+            src-tauri/gen/android/app/build/outputs/**
+          if-no-files-found: ignore
+
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-${{ needs.tag.outputs.tag_name }}
+          path: |
+            src-tauri/gen/ios/**
+          if-no-files-found: ignore
+
+      - name: Upload web bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist-${{ needs.tag.outputs.tag_name }}
+          path: web-dist.tar.gz
+          if-no-files-found: error
+
