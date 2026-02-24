@@ -18,7 +18,9 @@ cp src-tauri/icons/icon.png public/web/favicon.png
 cp questions.json public/
 cp src/quiz-core.js public/src/
 cp src/style.css public/src/
-
+cat > public/CNAME <<'EOF'
+caa-quiz.bhdit.com
+EOF
 cat > public/index.html <<'EOF'
 <!doctype html>
 <html lang="ro">
